@@ -5,7 +5,13 @@
 But they only make problems.  
 Here is a short API to handle vendor prefixes.
 
-# API reference.
+## Using with bower
+
+```sh
+bower install vendor-prefixes
+```
+
+# API reference
 
 ### VendorPrefixes.versions( value, type )
 
