@@ -15,7 +15,14 @@
 		var value = target[ property ];
 		delete target[ property ];
 		return value;
-	}
+	};
+	function ObjectValues( target, skip ) {
+		var result = []; skip = skip || 0;
+		for( var key in target ) 
+			if( --skip < 0 ) 
+				result.push( target[ key ] );
+		return result;
+	};
 	var HasOwn = ( function () {
 		var has_own = {}.hasOwnProperty;
 		return function HasOwn( target, name ) {
