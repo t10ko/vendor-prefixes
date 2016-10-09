@@ -1,7 +1,7 @@
 {
   "name": "vendor-prefixes",
-  "description": "Vendor prefixed properties solution",
-  "main": "main",
+  "description": "JavaScript tiny lib for checking and manipulating with vendor prefixes.",
+  "main": "src/main.js",
   "authors": [
     "Tigran Atayan"
   ],
@@ -16,7 +16,7 @@
     "transition",
     "animation"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/t10ko/vendor-prefixes",
   "ignore": [
     "**/.*",
     "node_modules",

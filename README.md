@@ -1,4 +1,4 @@
-# JavaScript API for checking vendor prefix versions.
+# JavaScript tiny lib for checking and manipulating with vendor prefixes.
 
 [Vendor prefixes](https://developer.mozilla.org/en-US/docs/Glossary/Vendor_Prefix) are used by browsers to make non standart features.
 

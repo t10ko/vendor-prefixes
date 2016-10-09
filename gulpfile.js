@@ -1,18 +1,31 @@
 'use strict';
+
+var Config = ( function () {
+	var self = {}, 
+		file = 'for-web';
+
+	self.src = 'src/';
+	self.dist = 'dist/';
+
+	self.compiled = 'compiled.js';
+
+	self.filePath = self.src + file + '.js';
+	self.minFilePath = self.dist + file + '.min.js';
+	self.compiledFilePath = self.dist + self.compiled;
+	return self;
+} ) ();
  
 var gulp = require( 'gulp' ), 
 	gzip = require( 'gulp-gzip' ), 
 	uglify = require( 'gulp-uglify' ), 
-	rename = require( 'gulp-rename' ),
-	fs = require('fs'),
-	moment = require('moment'),
-	pkg = require('./package.json'),
-	header = require('gulp-header'),
+	rename = require( 'gulp-rename' ), 
+	concat = require( 'gulp-concat' ), 
+	moment = require( 'moment' ), 
+	header = require( 'gulp-header' ), 
+	bower = require( 'main-bower-files' ), 
 
-	folder = './', 
-	file = folder + 'main', 
-	filename = file + '.js', 
-	min_filename = file + '.min.js', 
+	pkg = require('./package.json'),
+	fs = require('fs'),
 
 	uglify_settings = {
 		fromString: true, 
@@ -43,20 +56,20 @@ var gulp = require( 'gulp' ),
 	};
 
 gulp.task( 'minify', function () {
-	gulp.src( filename )
+	gulp.src( [Config.filePath, Config.compiledFilePath] )
 		.pipe( uglify( uglify_settings ) )
-		.pipe( rename( min_filename ) )
-		.pipe( gulp.dest( './' ) )
+		.pipe( rename( { extname: '.min.js' } ) )
+		.pipe( gulp.dest( dist_folder ) );
 } );
 gulp.task( 'gzipify', function () {
-	gulp.src( min_filename )
+	gulp.src( Config.dist + '*.min.js' )
 		.pipe( gzip() )
-		.pipe( gulp.dest( folder ) )
+		.pipe( gulp.dest( dist_folder ) );
 } );
-gulp.task('addheaders', function() {
-	var file = fs.readFileSync( min_filename ).toString();
+gulp.task( 'addheader', function () {
+	var file = fs.readFileSync( Config.minFilePath ).toString();
 	file = file.replace(/^\/\*(.|\n)+\*\//, '');
-	fs.writeFileSync( min_filename, file );
+	fs.writeFileSync( Config.minFilePath, file );
 
 	var year = moment().format('YYYY'), 
 		header_options = {
@@ -72,7 +85,7 @@ gulp.task('addheaders', function() {
 	if( !this_year )
 		header_options.year = year;
 
-	gulp.src( min_filename )
+	gulp.src( Config.minFilePath )
 		.pipe( 
 			header( [
 				'/*! ${title} - v${version} - ${date}\n',
@@ -81,10 +94,15 @@ gulp.task('addheaders', function() {
 			].join( '' ), 
 			header_options 
 		) )
-		.pipe( gulp.dest( folder ) );
+		.pipe( gulp.dest( dist_folder ) );
+} );
+gulp.task( 'bowerize', function () {
+	gulp.src( bower( { includeSelf: true } ) )
+		.pipe( concat( Config.compiled ) )
+		.pipe( gulp.dest( 'dist/' ) );
 } );
 
 gulp.task( 'default', [], function () {
-	gulp.watch( [ filename ], [ 'minify', 'gzipify', 'addheaders' ] );
-	gulp.start( [ 'minify', 'gzipify', 'addheaders' ] );
+	gulp.watch( [ filepath ], [ 'bowerize', 'minify', 'gzipify', 'addheader' ] );
+	gulp.start( [ 'bowerize', 'minify', 'gzipify', 'addheader' ] );
 } );
