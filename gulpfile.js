@@ -2,16 +2,13 @@
 
 var Config = ( function () {
 	var self = {}, 
-		file = 'for-web';
+		file = 'main';
 
 	self.src = 'src/';
 	self.dist = 'dist/';
 
-	self.compiled = 'compiled.js';
-
 	self.filePath = self.src + file + '.js';
 	self.minFilePath = self.dist + file + '.min.js';
-	self.compiledFilePath = self.dist + self.compiled;
 	return self;
 } ) ();
  
@@ -19,10 +16,8 @@ var gulp = require( 'gulp' ),
 	gzip = require( 'gulp-gzip' ), 
 	uglify = require( 'gulp-uglify' ), 
 	rename = require( 'gulp-rename' ), 
-	concat = require( 'gulp-concat' ), 
 	moment = require( 'moment' ), 
 	header = require( 'gulp-header' ), 
-	bower = require( 'main-bower-files' ), 
 
 	pkg = require('./package.json'),
 	fs = require('fs'),
@@ -55,18 +50,23 @@ var gulp = require( 'gulp' ),
 		}
 	};
 
-gulp.task( 'minify', function () {
-	gulp.src( [Config.filePath, Config.compiledFilePath] )
+gulp.task( 'minify', function ( done ) {
+	gulp.src( Config.filePath )
 		.pipe( uglify( uglify_settings ) )
 		.pipe( rename( { extname: '.min.js' } ) )
-		.pipe( gulp.dest( dist_folder ) );
+		.pipe( gulp.dest( Config.dist ) )
+		.on( 'end', done );
 } );
-gulp.task( 'gzipify', function () {
+
+//	This task must be executed after minify.
+gulp.task( 'gzipify', ['minify'], function () {
 	gulp.src( Config.dist + '*.min.js' )
 		.pipe( gzip() )
-		.pipe( gulp.dest( dist_folder ) );
+		.pipe( gulp.dest( Config.dist ) );
 } );
-gulp.task( 'addheader', function () {
+
+//	This task must be executed after minify.
+gulp.task( 'addheader', ['minify'], function () {
 	var file = fs.readFileSync( Config.minFilePath ).toString();
 	file = file.replace(/^\/\*(.|\n)+\*\//, '');
 	fs.writeFileSync( Config.minFilePath, file );
@@ -94,15 +94,10 @@ gulp.task( 'addheader', function () {
 			].join( '' ), 
 			header_options 
 		) )
-		.pipe( gulp.dest( dist_folder ) );
-} );
-gulp.task( 'bowerize', function () {
-	gulp.src( bower( { includeSelf: true } ) )
-		.pipe( concat( Config.compiled ) )
-		.pipe( gulp.dest( 'dist/' ) );
+		.pipe( gulp.dest( Config.dist ) );
 } );
 
 gulp.task( 'default', [], function () {
-	gulp.watch( [ filepath ], [ 'bowerize', 'minify', 'gzipify', 'addheader' ] );
-	gulp.start( [ 'bowerize', 'minify', 'gzipify', 'addheader' ] );
+	gulp.watch( [ Config.filePath ], [ 'minify', 'addheader', 'gzipify' ] );
+	gulp.start( [ 'minify', 'addheader', 'gzipify' ] );
 } );
